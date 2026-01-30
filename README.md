@@ -26,6 +26,7 @@ This project is fully reproducible, easy to deploy and tear down, and mirrors co
 ### High-Level Architecture
 
 The cluster is deployed within a dedicated AWS Virtual Private Cloud (VPC) and consists of public and private subnets.
+<img width="1051" height="1251" alt="RKE2-AWS-HA(3)" src="https://github.com/user-attachments/assets/b603cb5b-6c81-4a47-83d5-8ee0d56af0c6" />
 
 ### Components
 
