@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Phase 3 — Join Remaining Control Plane Nodes
-############################################
 
 INV="$REPO_ROOT/inventory/inventory.json"
 KEY="$(realpath "$(jq -r .ssh_key "$INV")")"
@@ -16,9 +14,7 @@ JOIN_NODES="$(jq -r '.control_plane[1:][]' "$INV")"
 
 RKE2_VERSION="$(jq -r .rke2_version "$INV")"
 
-############################################
 # Logging helpers (pure Bash)
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -35,9 +31,7 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Phase banner
-############################################
 
 separator
 log_info "Phase 3: Joining remaining control plane nodes"
@@ -46,9 +40,7 @@ log_info "Join targets: ${JOIN_NODES:-none}"
 log_info "RKE2 version: ${RKE2_VERSION}"
 separator
 
-############################################
 # Fetch join token from control-plane-1
-############################################
 
 log_info "Retrieving RKE2 join token from primary control plane"
 
@@ -64,9 +56,7 @@ fi
 
 log_success "RKE2 join token retrieved successfully"
 
-############################################
 # Join remaining control plane nodes
-############################################
 
 for IP in $JOIN_NODES; do
     separator
@@ -91,9 +81,7 @@ EOF
     log_success "Control plane node joined successfully: ${IP}"
 done
 
-############################################
 # Phase completion
-############################################
 
 separator
 log_success "Phase 3 completed: All control plane nodes have joined the cluster"

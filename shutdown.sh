@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Project: RKE2 HA Kubernetes on AWS
 # Description:
 #   - Destroys all AWS infrastructure provisioned for the cluster
@@ -17,13 +16,10 @@ set -euo pipefail
 #   - All cluster data will be lost
 #
 # Built by: Abhiram
-############################################
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-############################################
 # Logging helpers
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -40,9 +36,7 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Project banner (destructive warning)
-############################################
 
 separator
 echo -e "${RED}RKE2 HA Kubernetes on AWS — DESTRUCTION MODE${RESET}"
@@ -54,9 +48,7 @@ echo
 echo -e "Built by: ${GREEN}Abhiram${RESET}"
 separator
 
-############################################
 # Destroy infrastructure
-############################################
 
 log_warn "Destroying entire RKE2 HA cluster and infrastructure"
 log_warn "This will remove ALL Terraform-managed resources"
@@ -69,9 +61,7 @@ cd "$ROOT_DIR/terraform"
 
 terraform destroy -auto-approve
 
-############################################
 # Destruction complete
-############################################
 
 separator
 log_success "Infrastructure destroyed successfully"

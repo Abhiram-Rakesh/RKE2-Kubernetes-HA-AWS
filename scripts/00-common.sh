@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Phase 0 — Common Node Preparation
-############################################
 
 INV="$REPO_ROOT/inventory/inventory.json"
 KEY="$(realpath "$(jq -r .ssh_key "$INV")")"
 BASTION_IP="$(jq -r .nginx_lb.public_ip "$INV")"
 ALL_NODES="$(jq -r '.control_plane[], .workers[]' "$INV")"
 
-############################################
 # Logging helpers (pure Bash)
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -29,18 +25,14 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Phase banner
-############################################
 
 separator
 log_info "Phase 0: Common node preparation"
 log_info "Target nodes: control planes + workers"
 separator
 
-############################################
 # Execute preparation on each node
-############################################
 
 for IP in $ALL_NODES; do
     separator
@@ -60,9 +52,7 @@ EOF
     log_success "Node prepared successfully: ${IP}"
 done
 
-############################################
 # Phase completion
-############################################
 
 separator
 log_success "Phase 0 completed: Common node preparation successful"

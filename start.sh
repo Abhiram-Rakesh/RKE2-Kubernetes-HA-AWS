@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Project: RKE2 HA Kubernetes on AWS
 # Description:
 #   - Bootstraps a Highly Available RKE2 cluster
@@ -15,16 +14,13 @@ set -euo pipefail
 #   - Fails fast on any error
 #
 # Built by: Abhiram
-############################################
 
 export SSH_OPTS="-o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INV="$REPO_ROOT/inventory/inventory.json"
 
-############################################
 # Logging helpers
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -41,9 +37,7 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Project banner
-############################################
 
 separator
 echo -e "${BLUE}RKE2 HA Kubernetes on AWS${RESET}"
@@ -60,9 +54,7 @@ echo
 echo -e "Built by: ${GREEN}Abhiram${RESET}"
 separator
 
-############################################
 # Inventory validation
-############################################
 
 if [[ ! -f "$INV" ]]; then
     log_error "inventory.json not found"
@@ -75,9 +67,7 @@ export INV
 
 log_success "Inventory file detected"
 
-############################################
 # Execute bootstrap phases
-############################################
 
 separator
 log_info "Starting Kubernetes cluster bootstrap"
@@ -88,9 +78,7 @@ for script in "$REPO_ROOT"/scripts/*.sh; do
     bash "$script"
 done
 
-############################################
 # Bootstrap complete
-############################################
 
 separator
 log_success "Cluster bootstrap completed successfully"

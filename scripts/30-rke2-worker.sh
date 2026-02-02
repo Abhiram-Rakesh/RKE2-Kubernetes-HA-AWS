@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Phase 4 — Join Worker Nodes
-############################################
 
 INV="$REPO_ROOT/inventory/inventory.json"
 KEY="$(realpath "$(jq -r .ssh_key "$INV")")"
@@ -16,9 +14,7 @@ WORKER_NODES="$(jq -r '.workers[]' "$INV")"
 
 RKE2_VERSION="$(jq -r .rke2_version "$INV")"
 
-############################################
 # Logging helpers (pure Bash)
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -35,9 +31,7 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Phase banner
-############################################
 
 separator
 log_info "Phase 4: Joining worker nodes"
@@ -46,9 +40,7 @@ log_info "Worker targets: ${WORKER_NODES:-none}"
 log_info "RKE2 version: ${RKE2_VERSION}"
 separator
 
-############################################
 # Fetch join token from control-plane-1
-############################################
 
 log_info "Retrieving RKE2 join token from primary control plane"
 
@@ -64,9 +56,7 @@ fi
 
 log_success "RKE2 join token retrieved successfully"
 
-############################################
 # Join worker nodes
-############################################
 
 for IP in $WORKER_NODES; do
     separator
@@ -91,9 +81,7 @@ EOF
     log_success "Worker node joined successfully: ${IP}"
 done
 
-############################################
 # Phase completion
-############################################
 
 separator
 log_success "Phase 4 completed: All worker nodes have joined the cluster"

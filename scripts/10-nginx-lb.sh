@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Phase 1 — NGINX Load Balancer Setup
-############################################
 
 INV="$REPO_ROOT/inventory/inventory.json"
 KEY="$(realpath "$(jq -r .ssh_key "$INV")")"
 BASTION_IP=$(jq -r .nginx_lb.public_ip "$INV")
 CONTROL_PLANES=$(jq -r '.control_plane[]' "$INV")
 
-############################################
 # Logging helpers (pure Bash)
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -29,18 +25,14 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Phase banner
-############################################
 
 separator
 log_info "Phase 1: Configuring NGINX Load Balancer"
 log_info "Target node: NGINX LB (${BASTION_IP})"
 separator
 
-############################################
 # Execute on bastion
-############################################
 
 log_info "Installing NGINX and stream module"
 

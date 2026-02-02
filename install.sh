@@ -57,9 +57,7 @@ echo
 echo -e "Built by: ${GREEN}Abhiram${RESET}"
 separator
 
-############################################
 # 1. Ensure scripts are executable
-############################################
 
 log_info "Ensuring executable permissions on bootstrap scripts"
 
@@ -69,9 +67,7 @@ chmod +x "$ROOT_DIR"/shutdown.sh
 
 log_success "Executable permissions verified"
 
-############################################
 # 2. Terraform init & apply
-############################################
 
 separator
 log_info "Provisioning infrastructure with Terraform"
@@ -86,9 +82,7 @@ cd "$ROOT_DIR"
 
 log_success "Infrastructure provisioned successfully"
 
-############################################
 # 3. Bootstrap cluster
-############################################
 
 separator
 log_info "Bootstrapping Kubernetes cluster"
@@ -96,9 +90,7 @@ separator
 
 "$ROOT_DIR/start.sh"
 
-############################################
 # Installation complete
-############################################
 
 separator
 log_success "RKE2 HA cluster installation completed successfully"

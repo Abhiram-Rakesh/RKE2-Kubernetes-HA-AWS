@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-############################################
 # Phase 2 — Bootstrap Initial RKE2 Control Plane
-############################################
 
 INV="$REPO_ROOT/inventory/inventory.json"
 KEY="$(realpath "$(jq -r .ssh_key "$INV")")"
@@ -12,9 +10,7 @@ CP1_IP="$(jq -r '.control_plane[0]' "$INV")"
 RKE2_VERSION="$(jq -r .rke2_version "$INV")"
 LB_PRIVATE_IP="$(jq -r .nginx_lb.private_ip "$INV")"
 
-############################################
 # Logging helpers (pure Bash)
-############################################
 
 BLUE="\033[1;34m"
 GREEN="\033[1;32m"
@@ -31,9 +27,7 @@ separator() {
     echo -e "\n${BLUE}════════════════════════════════════════════════════════════${RESET}"
 }
 
-############################################
 # Phase banner
-############################################
 
 separator
 log_info "Phase 2: Bootstrap initial RKE2 control plane"
@@ -41,9 +35,7 @@ log_info "Target node: control-plane-1 (${CP1_IP})"
 log_info "RKE2 version: ${RKE2_VERSION}"
 separator
 
-############################################
 # Install and initialize RKE2 on CP1
-############################################
 
 log_info "Installing RKE2 server on control-plane-1"
 
@@ -85,9 +77,7 @@ EOF
 
 log_success "rke2-server started successfully on control-plane-1"
 
-############################################
 # Phase completion
-############################################
 
 separator
 log_success "Phase 2 completed: Initial RKE2 control plane is up"
