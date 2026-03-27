@@ -58,7 +58,43 @@ echo
 echo -e "Built by: ${GREEN}Abhiram${RESET}"
 separator
 
-# 1. Ensure scripts are executable
+# 1. Prerequisites check
+
+separator
+log_info "Checking local prerequisites"
+separator
+
+MISSING=0
+
+check_cmd() {
+    if command -v "$1" &>/dev/null; then
+        log_success "$1 found ($(command -v "$1"))"
+    else
+        log_error "$1 not found — $2"
+        MISSING=1
+    fi
+}
+
+check_cmd terraform      "Install from https://developer.hashicorp.com/terraform/install"
+check_cmd ansible-playbook "Run: pip install ansible"
+check_cmd python3        "Install Python 3 via your package manager"
+check_cmd aws            "Install from https://aws.amazon.com/cli/"
+
+if [[ $MISSING -eq 1 ]]; then
+    log_error "One or more required tools are missing. Please install them and retry."
+    exit 1
+fi
+
+log_info "Verifying AWS credentials"
+if ! aws sts get-caller-identity &>/dev/null; then
+    log_error "AWS credentials are not configured or have expired."
+    log_error "Run: aws configure  (or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY)"
+    exit 1
+fi
+
+log_success "AWS credentials valid ($(aws sts get-caller-identity --query 'Arn' --output text))"
+
+# 3. Ensure scripts are executable
 
 log_info "Ensuring executable permissions on scripts"
 
@@ -68,7 +104,7 @@ chmod +x "$ROOT_DIR/ansible/inventory.py"
 
 log_success "Executable permissions verified"
 
-# 2. Terraform init & apply
+# 4. Terraform init & apply
 
 separator
 log_info "Provisioning infrastructure with Terraform"
@@ -83,7 +119,7 @@ cd "$ROOT_DIR"
 
 log_success "Infrastructure provisioned successfully"
 
-# 3. Bootstrap cluster
+# 5. Bootstrap cluster
 
 separator
 log_info "Bootstrapping Kubernetes cluster"
