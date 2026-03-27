@@ -1,0 +1,96 @@
+---
+# =============================================================================
+# RKE2 HA Kubernetes on AWS — Master Playbook
+#
+# Plays execute in order to build up the cluster from scratch:
+#
+#   1. common         → all k8s nodes    : disable swap, install deps
+#   2. nginx_lb       → bastion          : TCP load balancer for API + supervisor
+#   3. rke2_init      → control_plane_init : bootstrap first CP + embedded etcd
+#   4. rke2_cp        → control_plane_join : join remaining CPs (serial: 1)
+#   5. rke2_worker    → workers          : register agent nodes
+#   6. kubectl_access → bastion          : install kubectl + configure kubeconfig
+#   7. verify         → bastion          : label workers, check node/pod health
+# =============================================================================
+
+# ── Play 1: Prepare all Kubernetes nodes ────────────────────────────────────
+- name: Common node preparation
+  hosts: k8s_nodes
+  become: true
+  roles:
+    - common
+
+# ── Play 2: Configure NGINX load balancer on bastion ────────────────────────
+- name: NGINX TCP load balancer
+  hosts: bastion
+  become: true
+  roles:
+    - nginx_lb
+
+# ── Play 3: Bootstrap the initial control plane (cluster-init + etcd) ───────
+- name: Bootstrap initial RKE2 control plane
+  hosts: control_plane_init
+  become: true
+  roles:
+    - rke2_init
+
+# ── Play 4: Join remaining control plane nodes ───────────────────────────────
+# serial: 1 — join one node at a time to preserve etcd quorum
+- name: Join additional control plane nodes
+  hosts: control_plane_join
+  become: true
+  serial: 1
+  roles:
+    - rke2_cp
+
+# ── Play 5: Join worker nodes ────────────────────────────────────────────────
+- name: Join worker nodes
+  hosts: workers
+  become: true
+  roles:
+    - rke2_worker
+
+# ── Play 6: Configure kubectl access on bastion ──────────────────────────────
+- name: Configure operator kubectl access
+  hosts: bastion
+  become: true
+  roles:
+    - kubectl_access
+
+# ── Play 7: Verify cluster health ────────────────────────────────────────────
+- name: Verify cluster health
+  hosts: bastion
+  become: false
+  tasks:
+    - name: Wait for all nodes to reach Ready state
+      command: kubectl get nodes --no-headers
+      register: node_status
+      until: "'NotReady' not in node_status.stdout"
+      retries: 15
+      delay: 20
+      changed_when: false
+
+    - name: Apply worker role label to unlabelled nodes
+      shell: |
+        for node in $(kubectl get nodes --no-headers | awk '$3=="<none>" {print $1}'); do
+          kubectl label node "$node" node-role.kubernetes.io/worker= --overwrite
+        done
+      changed_when: true
+
+    - name: Get final node list
+      command: kubectl get nodes
+      register: final_nodes
+      changed_when: false
+
+    - name: Show cluster nodes
+      debug:
+        msg: "{{ final_nodes.stdout_lines }}"
+
+    - name: Verify system pods are running
+      command: kubectl get pods -A --no-headers
+      register: pod_status
+      changed_when: false
+
+    - name: Show system pods
+      debug:
+        msg: "{{ pod_status.stdout_lines }}"

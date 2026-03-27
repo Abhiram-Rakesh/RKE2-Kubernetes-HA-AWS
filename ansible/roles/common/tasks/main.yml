@@ -1,0 +1,31 @@
+---
+# =============================================================================
+# Role: common
+# Prepares every Kubernetes node (control planes + workers) with the baseline
+# requirements for RKE2:
+#   1. Disable swap permanently  (Kubernetes requirement)
+#   2. Update apt package cache
+#   3. Install curl and jq
+# =============================================================================
+
+- name: Disable swap immediately
+  command: swapoff -a
+  changed_when: false
+
+- name: Remove swap entries from /etc/fstab (persist across reboots)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\sswap\s.*)$'
+    replace: '# \1'
+
+- name: Update apt package cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name:
+      - curl
+      - jq
+    state: present

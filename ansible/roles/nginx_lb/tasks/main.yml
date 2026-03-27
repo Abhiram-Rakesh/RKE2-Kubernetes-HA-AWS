@@ -1,0 +1,36 @@
+---
+# =============================================================================
+# Role: nginx_lb
+# Installs and configures NGINX on the bastion as a TCP load balancer for:
+#   - Kubernetes API server  (port 6443)  → upstream: all control plane nodes
+#   - RKE2 supervisor API    (port 9345)  → upstream: all control plane nodes
+# Uses the NGINX stream module for layer-4 (TCP) proxying.
+# =============================================================================
+
+- name: Update apt package cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install NGINX and stream module
+  apt:
+    name:
+      - nginx
+      - libnginx-mod-stream
+    state: present
+
+- name: Deploy NGINX TCP load balancer configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "nginx -t -c %s"
+  notify: Restart nginx
+
+- name: Ensure NGINX is enabled and running
+  service:
+    name: nginx
+    state: started
+    enabled: true

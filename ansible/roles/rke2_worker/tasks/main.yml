@@ -1,0 +1,53 @@
+---
+# =============================================================================
+# Role: rke2_worker
+# Joins worker (agent) nodes to an existing RKE2 cluster.
+#
+# Steps:
+#   1. Fetch the join token from the primary control plane
+#   2. Install the rke2-agent package (INSTALL_RKE2_TYPE=agent)
+#   3. Write config.yaml with the LB supervisor endpoint and token
+#   4. Enable and start the rke2-agent systemd service
+#
+# Worker nodes run kubelet and kube-proxy for workloads but do not run
+# control plane components or participate in the etcd cluster.
+# =============================================================================
+
+- name: Retrieve join token from primary control plane
+  slurp:
+    src: /var/lib/rancher/rke2/server/node-token
+  delegate_to: "{{ groups['control_plane_init'][0] }}"
+  become: true
+  register: rke2_token_raw
+
+- name: Store token as a host fact
+  set_fact:
+    rke2_token: "{{ rke2_token_raw.content | b64decode | trim }}"
+
+- name: Install RKE2 agent
+  shell: |
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION={{ rke2_version }} INSTALL_RKE2_TYPE=agent sh -
+  args:
+    creates: /usr/local/bin/rke2
+
+- name: Create RKE2 configuration directory
+  file:
+    path: /etc/rancher/rke2
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy RKE2 agent configuration
+  template:
+    src: rke2-agent-config.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: Enable and start rke2-agent
+  service:
+    name: rke2-agent
+    state: started
+    enabled: true

@@ -1,0 +1,52 @@
+---
+# =============================================================================
+# Role: rke2_init
+# Bootstraps the first RKE2 control plane node (control_plane_init group).
+#
+# Steps:
+#   1. Install the rke2-server package via the official installer
+#   2. Write config.yaml with cluster-init: true  (initialises embedded etcd)
+#   3. Add the load balancer private IP as a TLS SAN so kubectl works via LB
+#   4. Enable and start the rke2-server systemd service
+#   5. Wait until the supervisor port (9345) is reachable — signals readiness
+# =============================================================================
+
+- name: Install RKE2 server
+  shell: |
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION={{ rke2_version }} sh -
+  args:
+    creates: /usr/local/bin/rke2   # skip if already installed (idempotent)
+
+- name: Create RKE2 configuration directory
+  file:
+    path: /etc/rancher/rke2
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy RKE2 cluster-init configuration
+  template:
+    src: rke2-init-config.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: Enable and start rke2-server
+  service:
+    name: rke2-server
+    state: started
+    enabled: true
+
+- name: Wait for RKE2 supervisor port to be ready (signals cluster is bootstrapped)
+  wait_for:
+    host: 127.0.0.1
+    port: 9345
+    delay: "{{ rke2_startup_delay }}"
+    timeout: "{{ rke2_startup_timeout }}"
+
+- name: Wait for node-token to be generated
+  wait_for:
+    path: /var/lib/rancher/rke2/server/node-token
+    timeout: "{{ rke2_startup_timeout }}"

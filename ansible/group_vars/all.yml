@@ -1,0 +1,6 @@
+---
+# Seconds to wait before checking if a service port is open
+rke2_startup_delay: 15
+
+# How long to wait (seconds) for RKE2 services to become ready
+rke2_startup_timeout: 300

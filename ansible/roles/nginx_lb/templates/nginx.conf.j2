@@ -1,0 +1,46 @@
+# Managed by Ansible — do not edit manually
+# Generated for: RKE2 HA cluster TCP load balancer
+
+# Load the stream module for TCP/UDP proxying
+load_module modules/ngx_stream_module.so;
+
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+  worker_connections 1024;
+}
+
+# Stream block: layer-4 (TCP) proxying — required because the Kubernetes API
+# speaks raw TCP/TLS, not HTTP at the load-balancer level.
+stream {
+
+  # Upstream: Kubernetes API server (port 6443) on all control plane nodes
+  upstream k8s_api {
+{% for host in groups['control_plane'] %}
+    server {{ host }}:6443;
+{% endfor %}
+  }
+
+  # Upstream: RKE2 supervisor API (port 9345) on all control plane nodes
+  # This port is used during node join operations and cluster management.
+  upstream rke2_supervisor {
+{% for host in groups['control_plane'] %}
+    server {{ host }}:9345;
+{% endfor %}
+  }
+
+  # Kubernetes API — listen on 6443, proxy to control planes
+  server {
+    listen 6443;
+    proxy_pass k8s_api;
+  }
+
+  # RKE2 supervisor — listen on 9345, proxy to control planes
+  server {
+    listen 9345;
+    proxy_pass rke2_supervisor;
+  }
+
+}

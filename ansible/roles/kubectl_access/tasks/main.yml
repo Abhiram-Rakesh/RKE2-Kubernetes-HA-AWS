@@ -1,0 +1,63 @@
+---
+# =============================================================================
+# Role: kubectl_access
+# Sets up kubectl access on the bastion host so operators can manage the
+# cluster directly after SSHing in.
+#
+# Steps:
+#   1. Install kubectl binary
+#   2. Read kubeconfig from the primary control plane (via slurp + delegate_to)
+#   3. Write it to ~/.kube/config on the bastion with correct permissions
+#   4. Patch the server URL to point at localhost (NGINX LB listens on 6443)
+#   5. Validate connectivity with kubectl get nodes
+# =============================================================================
+
+- name: Install kubectl
+  shell: |
+    set -e
+    VERSION=$(curl -Ls https://dl.k8s.io/release/stable.txt)
+    curl -Lo /tmp/kubectl "https://dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl"
+    chmod +x /tmp/kubectl
+    mv /tmp/kubectl /usr/local/bin/kubectl
+  args:
+    creates: /usr/local/bin/kubectl
+
+- name: Ensure ~/.kube directory exists for ubuntu user
+  file:
+    path: /home/ubuntu/.kube
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0700"
+
+- name: Slurp kubeconfig from primary control plane
+  slurp:
+    src: /etc/rancher/rke2/rke2.yaml
+  delegate_to: "{{ groups['control_plane_init'][0] }}"
+  become: true
+  register: kubeconfig_raw
+
+- name: Write kubeconfig to bastion
+  copy:
+    content: "{{ kubeconfig_raw.content | b64decode }}"
+    dest: /home/ubuntu/.kube/config
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+
+- name: Patch kubeconfig — point API server at local NGINX load balancer
+  replace:
+    path: /home/ubuntu/.kube/config
+    regexp: 'server: https://.*:6443'
+    replace: 'server: https://127.0.0.1:6443'
+
+- name: Verify kubectl can reach the cluster
+  command: kubectl get nodes
+  become: false
+  become_user: ubuntu
+  changed_when: false
+  register: kubectl_output
+
+- name: Show cluster nodes
+  debug:
+    msg: "{{ kubectl_output.stdout_lines }}"

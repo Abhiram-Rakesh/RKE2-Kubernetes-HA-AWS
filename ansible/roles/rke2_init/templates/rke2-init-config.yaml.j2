@@ -1,0 +1,12 @@
+# Managed by Ansible — do not edit manually
+# RKE2 configuration for the initial (cluster-bootstrap) control plane node
+
+# cluster-init: true tells RKE2 to initialise a brand-new embedded etcd cluster.
+# Only the very first control plane node should have this flag.
+cluster-init: true
+
+# tls-san adds extra Subject Alternative Names to the API server TLS certificate.
+# Including the load balancer's private IP allows kubectl (and joining nodes) to
+# connect via the LB without certificate validation errors.
+tls-san:
+  - {{ lb_private_ip }}

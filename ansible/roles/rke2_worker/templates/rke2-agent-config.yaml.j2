@@ -1,0 +1,9 @@
+# Managed by Ansible — do not edit manually
+# RKE2 configuration for worker (agent) nodes
+
+# server: the RKE2 supervisor endpoint via load balancer.
+# Agents register with the cluster through this endpoint.
+server: https://{{ lb_private_ip }}:9345
+
+# token: cluster join secret from the primary control plane.
+token: {{ rke2_token }}

@@ -1,0 +1,10 @@
+# Managed by Ansible — do not edit manually
+# RKE2 configuration for control plane nodes joining an existing cluster
+
+# server: the RKE2 supervisor endpoint — reach the cluster via the load balancer.
+# Port 9345 is the RKE2 supervisor API used for node registration and cluster join.
+server: https://{{ lb_private_ip }}:9345
+
+# token: cluster join secret retrieved from the primary control plane.
+# Authenticates this node and grants it access to cluster state and certificates.
+token: {{ rke2_token }}

@@ -46,12 +46,13 @@ separator
 echo -e "${BLUE}RKE2 HA Kubernetes on AWS${RESET}"
 echo -e "${BLUE}--------------------------------------------${RESET}"
 echo -e "• Terraform-based AWS infrastructure"
+echo -e "• Ansible-driven cluster bootstrap"
 echo -e "• Highly Available RKE2 Kubernetes cluster"
 echo -e "• Bastion-host operator access model"
 echo
 echo -e "This script will:"
-echo -e "• Provision all infrastructure"
-echo -e "• Bootstrap the Kubernetes cluster"
+echo -e "• Provision all AWS infrastructure via Terraform"
+echo -e "• Bootstrap the Kubernetes cluster via Ansible"
 echo -e "• Perform end-to-end verification"
 echo
 echo -e "Built by: ${GREEN}Abhiram${RESET}"
@@ -59,11 +60,11 @@ separator
 
 # 1. Ensure scripts are executable
 
-log_info "Ensuring executable permissions on bootstrap scripts"
+log_info "Ensuring executable permissions on scripts"
 
-chmod +x "$ROOT_DIR"/scripts/*.sh
-chmod +x "$ROOT_DIR"/start.sh
-chmod +x "$ROOT_DIR"/shutdown.sh
+chmod +x "$ROOT_DIR/start.sh"
+chmod +x "$ROOT_DIR/shutdown.sh"
+chmod +x "$ROOT_DIR/ansible/inventory.py"
 
 log_success "Executable permissions verified"
 
