@@ -1,3 +1,19 @@
+# =============================================================================
+# inventory.tf — Generate Ansible inventory from Terraform outputs
+#
+# After `terraform apply`, this writes a JSON file that the dynamic Ansible
+# inventory script (ansible/inventory.py) reads to build its host groups.
+# Keeping inventory generation here ensures the IP addresses, SSH key path,
+# and RKE2 version stay in sync with the infrastructure Terraform manages.
+# =============================================================================
+
+# Write a JSON inventory file to ../inventory/inventory.json.
+# The Ansible inventory script reads this file at runtime to populate groups:
+#   nginx_lb      — public + private IPs of the bastion/LB
+#   control_plane — private IPs of all control plane nodes
+#   workers       — private IPs of all worker nodes
+#   ssh_key       — absolute path to the generated SSH private key
+#   rke2_version  — version string passed through to the Ansible group_vars
 resource "local_file" "inventory" {
   filename = "${path.module}/../inventory/inventory.json"
 
