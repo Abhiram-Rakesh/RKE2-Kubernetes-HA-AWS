@@ -1,4 +1,5 @@
 ---
+# Triggered by the nginx_lb tasks when the configuration file changes.
 - name: Restart nginx
   service:
     name: nginx
