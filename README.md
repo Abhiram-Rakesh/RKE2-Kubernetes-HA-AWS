@@ -167,7 +167,7 @@ terraform version && ansible --version && python3 --version && aws sts get-calle
 curl -fsSL https://raw.githubusercontent.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS/main/install.sh | bash
 ```
 
-If the repo is not already present locally, the script clones it to `~/rke2-kubernetes-ha-aws` automatically before proceeding.
+If the repo is not already present locally, the script clones it to `~/RKE2-Kubernetes-HA-AWS` automatically before proceeding.
 
 `install.sh` will:
 1. Check all local prerequisites and AWS credentials
@@ -228,7 +228,7 @@ The bastion public IP is printed by Terraform at the end of `terraform apply`. S
 
 ```bash
 # curl install
-ssh -i ~/rke2-kubernetes-ha-aws/terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
+ssh -i ~/RKE2-Kubernetes-HA-AWS/terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
 
 # manual install (from repo root)
 ssh -i terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
@@ -251,7 +251,7 @@ If the AWS infrastructure is already provisioned and you only want to re-run Ans
 
 ```bash
 # curl install
-bash ~/rke2-kubernetes-ha-aws/start.sh
+bash ~/RKE2-Kubernetes-HA-AWS/start.sh
 
 # manual install (from repo root)
 bash start.sh
@@ -267,7 +267,7 @@ bash start.sh
 curl -fsSL https://raw.githubusercontent.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS/main/shutdown.sh | bash
 ```
 
-The script resolves the installation at `~/rke2-kubernetes-ha-aws` (where the quick install placed it) and runs `terraform destroy -auto-approve` against the existing state.
+The script resolves the installation at `~/RKE2-Kubernetes-HA-AWS` (where the quick install placed it) and runs `terraform destroy -auto-approve` against the existing state.
 
 ### Manual Teardown — step by step
 
