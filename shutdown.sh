@@ -19,6 +19,17 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# When piped through curl, ROOT_DIR resolves to the current directory.
+# Fall back to the standard install location used by install.sh.
+if [[ ! -d "$ROOT_DIR/terraform" ]]; then
+    INSTALL_DIR="$HOME/rke2-kubernetes-ha-aws"
+    if [[ ! -d "$INSTALL_DIR/terraform" ]]; then
+        echo "[ERROR] No installation found at $INSTALL_DIR — run install.sh first"
+        exit 1
+    fi
+    exec bash "$INSTALL_DIR/shutdown.sh"
+fi
+
 # Logging helpers
 
 BLUE="\033[1;34m"

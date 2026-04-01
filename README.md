@@ -163,11 +163,11 @@ terraform version && ansible --version && python3 --version && aws sts get-calle
 
 ### Quick Install — single command
 
-Clones the repo and runs the full automated install (Terraform + Ansible) in one shot:
-
 ```bash
-git clone https://github.com/Abhiram-Rakesh/rke2-kubernetes-ha-aws.git rke2-ha && cd rke2-ha && bash install.sh
+curl -fsSL https://raw.githubusercontent.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS/main/install.sh | bash
 ```
+
+If the repo is not already present locally, the script clones it to `~/rke2-kubernetes-ha-aws` automatically before proceeding.
 
 `install.sh` will:
 1. Check all local prerequisites and AWS credentials
@@ -184,8 +184,8 @@ Use this if you want full control over each phase, or if you need to re-run a sp
 **Step 1 — Clone the repository**
 
 ```bash
-git clone https://github.com/Abhiram-Rakesh/rke2-kubernetes-ha-aws.git
-cd rke2-kubernetes-ha-aws
+git clone https://github.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS.git
+cd RKE2-Kubernetes-HA-AWS
 ```
 
 **Step 2 — Install Ansible**
@@ -205,10 +205,10 @@ cd ..
 
 Terraform will create the VPC, subnets, IGW, NAT Gateway, security groups, EC2 instances, and write `inventory/inventory.json`.
 
-**Step 4 — Make scripts executable**
+**Step 4 — Make the dynamic inventory executable**
 
 ```bash
-chmod +x install.sh start.sh shutdown.sh ansible/inventory.py
+chmod +x ansible/inventory.py
 ```
 
 **Step 5 — Bootstrap the cluster**
@@ -227,6 +227,10 @@ This runs all 7 plays in sequence: node prep → NGINX LB → CP init → CP joi
 The bastion public IP is printed by Terraform at the end of `terraform apply`. SSH in using the auto-generated key:
 
 ```bash
+# curl install
+ssh -i ~/rke2-kubernetes-ha-aws/terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
+
+# manual install (from repo root)
 ssh -i terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
 ```
 
@@ -246,6 +250,10 @@ All nodes should be in `Ready` state.
 If the AWS infrastructure is already provisioned and you only want to re-run Ansible:
 
 ```bash
+# curl install
+bash ~/rke2-kubernetes-ha-aws/start.sh
+
+# manual install (from repo root)
 bash start.sh
 ```
 
@@ -256,10 +264,10 @@ bash start.sh
 ### Quick Teardown — single command
 
 ```bash
-cd rke2-ha && bash shutdown.sh
+curl -fsSL https://raw.githubusercontent.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS/main/shutdown.sh | bash
 ```
 
-`shutdown.sh` runs `terraform destroy -auto-approve`, removing all AWS resources created by this project.
+The script resolves the installation at `~/rke2-kubernetes-ha-aws` (where the quick install placed it) and runs `terraform destroy -auto-approve` against the existing state.
 
 ### Manual Teardown — step by step
 

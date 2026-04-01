@@ -19,6 +19,16 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# When piped through curl, BASH_SOURCE[0] is empty and ROOT_DIR resolves to
+# the current directory — no terraform/ will be present. Clone the repo to
+# a fixed location and re-exec so the full project structure is available.
+if [[ ! -d "$ROOT_DIR/terraform" ]]; then
+    INSTALL_DIR="$HOME/rke2-kubernetes-ha-aws"
+    echo "[INFO] Repo not found locally — cloning to $INSTALL_DIR"
+    git clone --depth=1 https://github.com/Abhiram-Rakesh/RKE2-Kubernetes-HA-AWS.git "$INSTALL_DIR"
+    exec bash "$INSTALL_DIR/install.sh"
+fi
+
 ############################################
 # Logging helpers
 ############################################
