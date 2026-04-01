@@ -25,7 +25,8 @@ Key features include:
 
 The cluster is deployed within a dedicated AWS VPC with public and private subnets.
 
-<img width="1051" height="1251" alt="RKE2-AWS-HA(3)" src="https://github.com/user-attachments/assets/b603cb5b-6c81-4a47-83d5-8ee0d56af0c6" />
+<img width="1600" height="1259" alt="RKE2-Kubernetes-HA-AWS drawio" src="https://github.com/user-attachments/assets/84ec87ce-9c51-4406-98eb-7a75923cf1d4" />
+
 
 ### Components
 
