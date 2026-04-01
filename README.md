@@ -134,85 +134,151 @@ This means no manual inventory editing — destroy and recreate infrastructure a
 
 ---
 
-## Prerequisites
+## Installation
 
-### Local Requirements
+### Prerequisites
 
-- Linux or macOS
-- Bash
-- Terraform (v1.5 or later)
+**Local tools**
+
+- Linux or macOS with Bash
+- Terraform v1.5+
 - Ansible (`pip install ansible`)
-- Python 3 (for the dynamic inventory script)
-- AWS CLI configured with valid credentials
+- Python 3
+- AWS CLI configured with valid credentials (`aws configure`)
 
-### AWS Requirements
+**AWS account permissions**
 
-- An AWS account with permissions to create:
-  - VPCs, subnets, and route tables
-  - EC2 instances and security groups
-  - NAT Gateway and Elastic IPs
+- Create VPCs, subnets, and route tables
+- Launch EC2 instances and manage security groups
+- Provision NAT Gateways and Elastic IPs
+
+Verify everything is in place before running:
+
+```bash
+terraform version && ansible --version && python3 --version && aws sts get-caller-identity
+```
 
 ---
 
-## Installation Instructions
+### Quick Install — single command
 
-### 1. Clone the Repository
+Clones the repo and runs the full automated install (Terraform + Ansible) in one shot:
+
+```bash
+git clone https://github.com/Abhiram-Rakesh/rke2-kubernetes-ha-aws.git rke2-ha && cd rke2-ha && bash install.sh
+```
+
+`install.sh` will:
+1. Check all local prerequisites and AWS credentials
+2. Run `terraform init` and `terraform apply` to provision the VPC, subnets, EC2 instances, and security groups
+3. Generate `inventory/inventory.json` from Terraform outputs
+4. Run `ansible-playbook ansible/site.yml` to bootstrap the full cluster end-to-end
+
+---
+
+### Manual Install — step by step
+
+Use this if you want full control over each phase, or if you need to re-run a specific step.
+
+**Step 1 — Clone the repository**
 
 ```bash
 git clone https://github.com/Abhiram-Rakesh/rke2-kubernetes-ha-aws.git
 cd rke2-kubernetes-ha-aws
 ```
 
-### 2. Install Ansible
+**Step 2 — Install Ansible**
 
 ```bash
 pip install ansible
 ```
 
-### 3. Deploy the Cluster
+**Step 3 — Provision AWS infrastructure**
 
 ```bash
-chmod +x *.sh
-./install.sh
+cd terraform
+terraform init
+terraform apply
+cd ..
 ```
 
-This will:
-1. Provision all AWS infrastructure with Terraform
-2. Generate `inventory/inventory.json` from Terraform outputs
-3. Run `ansible-playbook ansible/site.yml` to bootstrap the full cluster
+Terraform will create the VPC, subnets, IGW, NAT Gateway, security groups, EC2 instances, and write `inventory/inventory.json`.
 
-### 4. Access the Cluster
-
-SSH into the bastion using the auto-generated key:
+**Step 4 — Make scripts executable**
 
 ```bash
-ssh -i terraform/ssh_key.pem ubuntu@<NGINX_LB_IP>
+chmod +x install.sh start.sh shutdown.sh ansible/inventory.py
 ```
 
-The bastion IP is printed by Terraform at the end of provisioning. Then:
+**Step 5 — Bootstrap the cluster**
+
+```bash
+cd ansible
+ansible-playbook site.yml
+```
+
+This runs all 7 plays in sequence: node prep → NGINX LB → CP init → CP join → workers → kubeconfig → verify.
+
+---
+
+### Access the Cluster
+
+The bastion public IP is printed by Terraform at the end of `terraform apply`. SSH in using the auto-generated key:
+
+```bash
+ssh -i terraform/ssh_key.pem ubuntu@<BASTION_PUBLIC_IP>
+```
+
+Then verify the cluster:
 
 ```bash
 kubectl get nodes
 kubectl get pods -A
 ```
 
-All nodes should be in the `Ready` state.
+All nodes should be in `Ready` state.
 
-### 5. Re-run Bootstrap (Optional)
+---
 
-If infrastructure already exists and you only want to re-run the Ansible bootstrap:
+### Re-run Bootstrap Only (infrastructure already exists)
 
-```bash
-./start.sh
-```
-
-### 6. Destroy the Environment
+If the AWS infrastructure is already provisioned and you only want to re-run Ansible:
 
 ```bash
-./shutdown.sh
+bash start.sh
 ```
 
-> ⚠️ This permanently destroys all AWS resources provisioned by the project.
+---
+
+## Teardown
+
+### Quick Teardown — single command
+
+```bash
+cd rke2-ha && bash shutdown.sh
+```
+
+`shutdown.sh` runs `terraform destroy -auto-approve`, removing all AWS resources created by this project.
+
+### Manual Teardown — step by step
+
+**Step 1 — Destroy all AWS infrastructure**
+
+```bash
+cd terraform
+terraform destroy
+```
+
+Terraform will prompt for confirmation before destroying. Type `yes` to proceed.
+
+**Step 2 — Clean up local state (optional)**
+
+```bash
+cd ..
+rm -f inventory/inventory.json terraform/ssh_key.pem terraform/ssh_key.pem.pub
+```
+
+> **Warning:** `terraform destroy` is irreversible. All EC2 instances, networking components, and cluster data will be permanently deleted.
 
 ---
 
